@@ -9,12 +9,12 @@ lazy val root = project.in(file(".")).aggregate(client, server).settings(
   publishLocal := {}
 )
 
-
 lazy val wootModelSettings = Seq(
     name := "woot",
-    version := "0.1-SNAPSHOT",
+    version := "1.0-SNAPSHOT",
     unmanagedSourceDirectories in Compile +=
-      baseDirectory.value / ".." / "woot-model" / "src" / "main" / "scala"
+      baseDirectory.value / ".." / "woot-model" / "src" / "main" / "scala",
+    libraryDependencies += "be.doeraene" %%% "scalajs-pickling-core" % "0.4.0"
  )
 
 lazy val wootLib = project.in(file("woot-model"))
