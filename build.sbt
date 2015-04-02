@@ -27,13 +27,15 @@ lazy val client = project.in(file("client"))
   .enablePlugins(ScalaJSPlugin)
   .settings(wootModelSettings: _*)
   .settings(
+    name := "woot client"
     // Add JS-specific settings here
   )
 
 lazy val server = project.in(file("server"))
   .settings(wootModelSettings: _*)
   .settings(
-    libraryDependencies ++= scalacheck ++ specs2,
+    name := "woot server",
+    libraryDependencies   ++= scalacheck ++ specs2,
     scalacOptions in Test ++= Seq("-Yrangepos")
   )
 
