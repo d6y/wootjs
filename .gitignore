@@ -1,0 +1,7 @@
+project
+target 
+client/target/
+server/target/
+target/
+woot-model/target/
+.settings
