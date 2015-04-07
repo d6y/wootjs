@@ -14,7 +14,7 @@ lazy val wootModelSettings = Seq(
     version := "1.0-SNAPSHOT",
     unmanagedSourceDirectories in Compile +=
       baseDirectory.value / ".." / "woot-model" / "src" / "main" / "scala",
-    libraryDependencies += "be.doeraene" %%% "scalajs-pickling-core" % "0.4.0"
+      libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.2.8"
  )
 
 lazy val wootLib = project.in(file("woot-model"))
