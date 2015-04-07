@@ -1,16 +1,17 @@
 var wsUri = "ws://127.0.0.1:8080/edit/default";
 var output;
+var websocket;
 
 function init()
 {
-  alert("INIT");
   output = document.getElementById("output");
+    websocket = new WebSocket(wsUri);
+  
   testWebSocket();
 }
 
 function testWebSocket()
 {
-  websocket = new WebSocket(wsUri);
   websocket.onopen = function(evt) { onOpen(evt) };
   websocket.onclose = function(evt) { onClose(evt) };
   websocket.onmessage = function(evt) { onMessage(evt) };
@@ -20,18 +21,19 @@ function testWebSocket()
 function onOpen(evt)
 {
   writeToScreen("CONNECTED");
-  doSend("WebSocket rocks");
+  doSend("WebSocket is here");
 }
 
 function onClose(evt)
 {
+  console.log(evt);
   writeToScreen("DISCONNECTED");
 }
 
 function onMessage(evt)
 {
   writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data+'</span>');
-  websocket.close();
+ // websocket.close();
 }
 
 function onError(evt)
