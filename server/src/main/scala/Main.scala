@@ -8,8 +8,7 @@ import org.http4s.blaze.channel.nio1.NIO1SocketServerChannelFactory
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.server.blaze.{WebSocketSupport, Http1ServerStage}
 
-import org.http4s.StaticFile
-import org.http4s.MediaType
+import org.http4s.{StaticFile,MediaType,Response}
 import org.http4s.dsl._
 import org.http4s.server.HttpService
 import org.http4s.websocket.WebsocketBits._
@@ -25,51 +24,57 @@ import scala.util.Properties.envOrNone
 
 import org.log4s.getLogger
 
-class WootServer(host: String, port: Int) {
+
+class WootRoutes {
   private val logger = getLogger
-  logger.info(s"Starting Http4s-blaze WootServer on '$host:$port'")
+  private implicit val scheduledEC = Executors.newScheduledThreadPool(1)
+  private val ops = topic[String]()
+  val service: HttpService = HttpService {
 
-  // For serving files for the file system:
+    case GET -> Root / "edit" / name =>
 
+      def frameToMsg(f: WebSocketFrame) = {
+        println(s"Received: $f")  
+         f match {
+          case Text(msg, _) => s"$name says: $msg"
+          case _            => s"$name sent bad message! Booo..."
+        }
+      }
+      
+      def toText(s: String): Text = {
+        println(s"toText: $s")
+        Text(s)
+      }
 
-  val staticPages = HttpService {
+      val resp: Task[Response] = ops.publishOne(s"New user '$name' joined chat").flatMap { _ =>
+        val src = Process.emit(Text(s"Welcome!")) ++ ops.subscribe.map(toText)
+        val snk = ops.publish.map(_ compose frameToMsg)//.onComplete(Process.await(ops.publishOne(s"$name left the chat"))(_ => Process.halt))
+        WS(src, snk)
+      }
+      resp
+  }
+}
+
+class StaticRoutes {
+    private val logger = getLogger
+    val service = HttpService {
     case req if req.pathInfo.endsWith(".html") | req.pathInfo.endsWith(".js") =>
       logger.info(s"Resource: ${req.pathInfo}")
       StaticFile.fromResource(req.pathInfo.toString, Some(req))
         .map(Task.now)
         .getOrElse(NotFound())
   }
+}
 
-
-  // Endpoints for handling Woot
-
-  private val ops = topic[String]()
-
-  val wootEndpoints: HttpService = HttpService {
-    case GET -> Root / "hello" =>
-      Ok("Hello, better world.")
-
-    case GET -> Root / "edit" / name =>
-
-      logger.info(s"Edit for $name")
-
-      def frameToMsg(f: WebSocketFrame) = f match {
-        case Text(msg, _) => s"$name says: $msg"
-        case _            => s"$name sent bad message! Booo..."
-      }
-
-      ops.publishOne(s"New user '$name' joined chat").flatMap { _ =>
-        val src = Process.emit(Text(s"Welcome to the chat, $name!")) ++ ops.subscribe.map(Text(_))
-        val snk = ops.publish.map(_ compose frameToMsg).onComplete(Process.await(ops.publishOne(s"$name left the chat"))(_ => Process.halt))
-        WS(src, snk)
-      }
-  }
+class WootServer(host: String, port: Int) {
+  private val logger = getLogger
+  logger.info(s"Starting Http4s-blaze WootServer on '$host:$port'")
 
   def run(): Unit = {
 
     val addr = new InetSocketAddress(host, port)
 
-    val service: HttpService = staticPages orElse wootEndpoints
+    val service: HttpService = new StaticRoutes().service orElse new WootRoutes().service
 
     val pool = Executors.newCachedThreadPool()
 
