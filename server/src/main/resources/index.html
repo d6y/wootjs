@@ -4,12 +4,52 @@
     <meta charset="utf-8">
     <title>Woot.js Demo</title>
     <script src="woot-client-fastopt.js" defer></script>
-    <script src="ws.js" defer></script>
+    <script src="ws.js"                  defer></script>
+    <script src="underscore-min.js"      defer></script>
+    <script src="jquery-1.10.2.min.js"   defer></script>
+    <script src="ace/ace.js"             defer></script>
+    <script src="editor.js"              defer></script>
+    <style type="text/css" media="screen">
+    #editor {
+      position: absolute;
+      top: 200px;
+      right: 0;
+      bottom: 0;
+      left: 0;
+    }
+  </style>
   </head>
   <body>
-    <h1>Hello</h1>
 
-    <div id="output"></div>
+    <div id="console">
+
+      <div>
+        Socket:  <span id="wsStatus">?</span>
+      </div>
+
+      <table width="60%">
+        <tr>
+          <th colspan="2">ACE</th>
+          <th colspan="2">Send</th>
+          <th colspan="2">Receive</th>
+        </tr>
+
+        <tr>
+          <td>Event type:</td><td><span id="lastAceEvent">?</span></td>
+          <td>Last char: </td><td><span id="lastCharSent">?</span></td>
+          <td>Last char: </td><td><span id="lastCharRecv">?</span></td>
+        </tr>
+
+        <tr>
+          <td>-</td><td>-</td>
+          <td>Last ID:</td><td><span id="lastIdSent">?</span></td>
+          <td>Last ID:</td><td><span id="lastIdRecv">?</span></td>
+        </tr>
+
+      </table>
+    </div>
+
+    <div id="editor"></div>
 
   </body>
 </html>

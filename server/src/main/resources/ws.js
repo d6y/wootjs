@@ -1,11 +1,11 @@
 var wsUri = "ws://127.0.0.1:8080/edit/default";
 var output;
 var websocket;
-var client = client.WootClient();
 
-function init()
+function wsInit()
 {
-  output = document.getElementById("output");
+  output = document.getElementById("wsStatus");
+  status("Connecting...");
   websocket = new WebSocket(wsUri);
   testWebSocket();
 }
@@ -20,19 +20,19 @@ function testWebSocket()
 
 function onOpen(evt)
 {
-  writeToScreen("CONNECTED");
+  status("CONNECTED");
   //doSend("WebSocket is here");
 }
 
 function onClose(evt)
 {
   console.log(evt);
-  writeToScreen("DISCONNECTED");
+  status("DISCONNECTED");
 }
 
 function onMessage(evt)
 {
-  writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data+'</span>');
+  //status('<span style="color: blue;">RESPONSE: ' + evt.data+'</span>');
   console.log(evt);
   console.log(JSON.parse(evt.data));
   client.ingest(evt.data);
@@ -41,21 +41,16 @@ function onMessage(evt)
 
 function onError(evt)
 {
-  writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+  status('<span style="color: red;">ERROR:</span> ' + evt.data);
 }
 
 function doSend(message)
 {
-  writeToScreen("SENT: " + message);
+  status("SENT: " + message);
   websocket.send(message);
 }
 
-function writeToScreen(message)
-{
-  var pre = document.createElement("p");
-  pre.style.wordWrap = "break-word";
-  pre.innerHTML = message;
-  output.appendChild(pre);
+function status(message) {
+   output.innerHTML = message;
 }
 
-window.addEventListener("load", init, false);
