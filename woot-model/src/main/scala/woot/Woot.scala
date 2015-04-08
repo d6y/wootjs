@@ -26,6 +26,13 @@ case class SiteId(value: String) extends AnyVal {
   def <(that: SiteId) = this.value < that.value
 }
 
+object SiteId {
+  import util.Random
+  // Some arbitrary session identifier for a site:
+  def random: SiteId =
+    SiteId(Random.alphanumeric.take(8).mkString)
+}
+
 case class ClockValue(value: Int) extends AnyVal {
   def incr: ClockValue = ClockValue(value + 1)
   def <(that: ClockValue) = this.value < that.value
@@ -55,6 +62,12 @@ sealed trait Operation {
 
 case class InsertOp(override val wchar: WChar, override val from: SiteId) extends Operation
 case class DeleteOp(override val wchar: WChar, override val from: SiteId) extends Operation
+
+// Convenience for getting a empty document
+object WString {
+  def empty(site: SiteId = SiteId.random) =
+    WString(site, ClockValue(0))
+}
 
 // # String representation
 // Note there there is no `WChar` representation of Beginning and Ending: they are not included in the vector.

@@ -1,6 +1,7 @@
 var wsUri = "ws://127.0.0.1:8080/edit/default";
 var output;
 var websocket;
+var client = client.WootClient();
 
 function init()
 {
@@ -34,6 +35,7 @@ function onMessage(evt)
   writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data+'</span>');
   console.log(evt);
   console.log(JSON.parse(evt.data));
+  client.ingest(evt.data);
  // websocket.close();
 }
 

@@ -24,7 +24,6 @@ import scala.util.Properties.envOrNone
 
 import org.log4s.getLogger
 
-import util.Random
 
 class WootRoutes {
   private val logger = getLogger
@@ -63,7 +62,7 @@ class WootRoutes {
         Text(json)
       }
 
-      val clientSite: SiteId = randomSite
+      val clientSite = SiteId.random
       logger.info(s"Subscribing $clientSite to document $name")
 
       val clientCopy = doc.copy(site=clientSite)
@@ -76,11 +75,6 @@ class WootRoutes {
       // TODO: shutdown considerations
       //val snk = ops.publish.map(_ compose decodeFrame).onComplete(Process.await(ops.publishOne(s"$name left the chat"))(_ => Process.halt))
   }
-
-  // Some arbitrary session identifier for the site:
-  private[this] def randomSite: SiteId =
-    SiteId(Random.alphanumeric.take(8).mkString)
-
 }
 
 class StaticRoutes {
@@ -97,7 +91,6 @@ class StaticRoutes {
     }
 
     val service = HttpService {
-      case req if req.pathInfo == ""           => req.serve("/index.html")
       case req if req.pathInfo == "/"          => req.serve("/index.html")
       case req if req.endsWith(".html", ".js") => req.serve()
     }
