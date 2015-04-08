@@ -8,7 +8,7 @@ import org.http4s.blaze.channel.nio1.NIO1SocketServerChannelFactory
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.server.blaze.{WebSocketSupport, Http1ServerStage}
 
-import org.http4s.{StaticFile,MediaType,Response}
+import org.http4s.{Request,StaticFile,Response}
 import org.http4s.dsl._
 import org.http4s.server.HttpService
 import org.http4s.websocket.WebsocketBits._
@@ -86,12 +86,20 @@ class WootRoutes {
 class StaticRoutes {
     private val logger = getLogger
 
-    val service = HttpService {
-      case req if req.pathInfo.endsWith(".html") | req.pathInfo.endsWith(".js") =>
-        logger.info(s"Resource: ${req.pathInfo}")
-        StaticFile.fromResource(req.pathInfo.toString, Some(req))
+    implicit class ReqOps(req: Request) {
+      def endsWith(exts: String*): Boolean = exts.exists(req.pathInfo endsWith _)
+      def serve(path: String = req.pathInfo) = {
+        logger.info(s"Resource: ${req.pathInfo} -> $path")
+        StaticFile.fromResource(path, Some(req))
           .map(Task.now)
           .getOrElse(NotFound())
+      }
+    }
+
+    val service = HttpService {
+      case req if req.pathInfo == ""           => req.serve("/index.html")
+      case req if req.pathInfo == "/"          => req.serve("/index.html")
+      case req if req.endsWith(".html", ".js") => req.serve()
     }
 }
 
