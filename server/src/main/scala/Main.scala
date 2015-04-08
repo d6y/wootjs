@@ -30,50 +30,57 @@ class WootRoutes {
   private val logger = getLogger
   private implicit val scheduledEC = Executors.newScheduledThreadPool(1)
 
-  println(s"Pickle test")
-  import upickle._
-  val clock = ClockValue(0)
-  val site = SiteId(Random.nextString(8))
-  val id = CharId(site, clock)
-  val wc = WChar(id, '*', Beginning, Ending)
-  val iop = InsertOp(wc, site)
-  println(s"IOP: $iop")
-  val wire = write(iop)
-  println(s"$wire")
-  println(s"GOT BACK: ${read[Operation](wire)}")
-  /*
-  Pickle test
-IOP: InsertOp(WChar(CharId(SiteId(抃ᙴ䑲귤蒾둪ី稷),ClockValue(0)),*,Beginning,Ending,true),SiteId(抃ᙴ䑲귤蒾둪ី稷))
-["woot.InsertOp",{"wchar":{"id":["woot.CharId",{"ns":{"value":"抃ᙴ䑲귤蒾둪ី稷"},"ng":{"value":0}}],"alpha":"*","prev":["woot.Beginning",{}],"next":["woot.Ending",{}]},"from":{"value":"抃ᙴ䑲귤蒾둪ី稷"}}]
-GOT BACK: InsertOp(WChar(CharId(SiteId(抃ᙴ䑲귤蒾둪ី稷),ClockValue(0)),*,Beginning,Ending,true),SiteId(抃ᙴ䑲귤蒾둪ី稷))*/
+  // Local view of the document, starting from blank.
+  // In a real system, we'd load from a backing store based on the name or ID of the document
+  val doc = new WString(SiteId("server"), ClockValue(0))
 
-  // WOOT operations:
-  private val ops = topic[String]()
+  // The queue of WOOT operations:
+  private val ops = topic[Operation]()
 
   val service: HttpService = HttpService {
 
+    // Joining an editing session, whicch sets up a web socket connection to the `ops` topic.
     case GET -> Root / "edit" / name =>
 
-      def frameToMsg(f: WebSocketFrame): String = {
-        logger.debug(s"Received: $f")
-         f match {
-          case Text(msg, _) => s"$name says: $msg"
-          case _            => s"$name sent bad message! Booo..."
-        }
+      import upickle._
+
+      // TODO: wsf => Throwable \/ Operation
+      val decodeFrame: WebSocketFrame => Operation =
+        _ match {
+          case Text(json, _) =>
+            logger.info(s"Received: $json")
+            read[Operation](json)
+//          case nonText       =>
+//            logger.warn(s"Non Text received: $nonText")
+//            NoOp
+       }
+
+
+
+      val encodeOp: Operation => Text = { op =>
+        val json = write(op)
+        logger.debug(s"encodeOp: $json")
+        Text(json)
       }
 
-      def toText(s: String): Text = {
-        logger.debug(s"toText: $s")
-        Text(s)
-      }
+      val clientSite: SiteId = randomSite
+      logger.info(s"Subscribing $clientSite to document $name")
 
-      val resp: Task[Response] = ops.publishOne(s"New user '$name' joined chat").flatMap { _ =>
-        val src = Process.emit(Text(s"Welcome!")) ++ ops.subscribe.map(toText)
-        val snk = ops.publish.map(_ compose frameToMsg).onComplete(Process.await(ops.publishOne(s"$name left the chat"))(_ => Process.halt))
-        WS(src, snk)
-      }
-      resp
+      val clientCopy = doc.copy(site=clientSite)
+      val document = Text(write(clientCopy))
+
+      val src = Process.emit(document) ++ ops.subscribe.map(encodeOp)
+      val snk = ops.publish.map(_ compose decodeFrame)
+      WS(src, snk)
+
+      // TODO: shutdown considerations
+      //val snk = ops.publish.map(_ compose decodeFrame).onComplete(Process.await(ops.publishOne(s"$name left the chat"))(_ => Process.halt))
   }
+
+  // Some arbitrary session identifier for the site:
+  private[this] def randomSite: SiteId =
+    SiteId(Random.alphanumeric.take(8).mkString)
+
 }
 
 class StaticRoutes {
@@ -110,9 +117,7 @@ class WootServer(host: String, port: Int) {
 }
 
 object Main extends App {
-  //val w = new WString( SiteId("main"), ClockValue(0)  )
-  //println(w)  val ip = envOrNone("IP").getOrElse("0.0.0.0")
   val ip = envOrNone("HOST") getOrElse("0.0.0.0")
-  val port = envOrNone("PORT") orElse envOrNone("HTTP_PORT") map(_.toInt) getOrElse(8080)
+  val port = envOrNone("PORT").map(_.toInt) getOrElse(8080)
   new WootServer(ip, port).run()
 }

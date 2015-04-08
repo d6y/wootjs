@@ -5,8 +5,7 @@ var websocket;
 function init()
 {
   output = document.getElementById("output");
-    websocket = new WebSocket(wsUri);
-  
+  websocket = new WebSocket(wsUri);
   testWebSocket();
 }
 
@@ -21,7 +20,7 @@ function testWebSocket()
 function onOpen(evt)
 {
   writeToScreen("CONNECTED");
-  doSend("WebSocket is here");
+  //doSend("WebSocket is here");
 }
 
 function onClose(evt)
@@ -33,6 +32,8 @@ function onClose(evt)
 function onMessage(evt)
 {
   writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data+'</span>');
+  console.log(evt);
+  console.log(JSON.parse(evt.data));
  // websocket.close();
 }
 

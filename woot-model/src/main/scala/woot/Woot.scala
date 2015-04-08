@@ -73,6 +73,12 @@ case class WString(
   // When a character is added locally, the clock increments
   private def tick: WString = copy(nextTick = nextTick.incr)
 
+  // The largest clock value for a site, when incremented, is the starting clock value for that site.
+  def maxClockValue(site: SiteId): ClockValue = ClockValue(
+    chars.filter(_.id.ns == site).map(_.id.ng.value).foldLeft(0) {
+      math.max
+    })
+
   // ## Insert a `WChar` into the internal vector at position `pos`, returning a new `WString`
   // Position are indexed from zero
   //
@@ -201,8 +207,7 @@ case class WString(
         val L: Vector[Id] = before +: trim(search).map(_.id) :+ after
         val i = math.max(1, math.min(L.length-1, L.takeWhile( _ < c.id ).length))
         integrate(c, L(i-1), L(i))
-  }
-
+    }
   }
 
   // Don't consider characters that have a `prev` or `next` in the set of
