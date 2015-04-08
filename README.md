@@ -23,13 +23,13 @@ $ sbt "project server" run
 ...
 ```
 
-Notice that the Scala.js compiler has run on the _wootjs_ project, to convert the client Scala code into JavaScript.  This JavaScript, _woot-client-fastopt.js_, is made available on the classpath of the server, so it can be included on the web page.  The web page is _server/src/main/resources/index.html_.
+Notice that the Scala.js compiler has run on the _woot-client_ project, to convert the client Scala code into JavaScript.  This JavaScript, _woot-client-fastopt.js_, is made available on the classpath of the server, so it can be included on the web page.  The web page is _server/src/main/resources/index.html_.
 
 This reflects the structure of the project:
 
 * _client_ - Scala source code, to be compiled to JavaScript.
-* _server_ - Scala source code to run server-side, plus other assets to be served, such as HTML, CSS and JavaScript.
-* _woot-model_ - Scala source code shared by both the client and server projects.
+* _server_ - Scala source code to run server-side, plus other assets to be served, such as HTML, CSS and plain old JavaScript.
+* _woot-model_ - Scala source code shared by both the client and server projects. This is the WOOT algorithm, implemented once, used in the JVM and the JavaScript runtime.
 
 
 ## Code Coverage
