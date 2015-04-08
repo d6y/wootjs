@@ -37,7 +37,8 @@ lazy val server = project.in(file("server"))
   .settings(
     name := "woot-server",
     libraryDependencies   ++= scalacheck ++ specs2 ++ http4s ++ logback,
-    scalacOptions in Test ++= Seq("-Yrangepos")
+    scalacOptions in Test ++= Seq("-Yrangepos"),
+    resources in Compile += (fastOptJS in (client, Compile)).value.data
   )
 
 lazy val scalacheck = Seq("org.scalacheck" %% "scalacheck" % "1.12.2" % "test")
