@@ -143,13 +143,24 @@ case class WString(
   // If we cannot currently integrate a character, it goes into a queue.
   private[this] def enqueue(op: Operation): WString = copy(queue = queue :+ op)
 
-  private def dequeue: WString = {
+  @scala.annotation.tailrec
+  private def dequeue(ops: Vector[Operation] = Vector.empty): (Vector[Operation], WString) = {
+
     def without(op: Operation): Vector[Operation] = queue.filterNot(_ == op)
-    queue.find(canIntegrate).map(op => copy(queue = without(op)).integrate(op)) getOrElse this
+
+    queue.find(canIntegrate) match {
+      case None                => (ops, this)
+      case Some(op @ InsertOp(c,_)) =>
+        // Remove the operation from the queue, and integrate:
+        val doc = copy(queue = without(op)).integrate(c, c.prev, c.next)
+        doc.dequeue(op +: ops)
+      case Some(op @ DeleteOp(c,_)) =>
+        copy(queue = without(op)).hide(c).dequeue(op +: ops)
+      }
   }
 
   // # Delete means making the character invisible.
-  private[this] def hide(c: WChar): WString = {
+  private def hide(c: WChar): WString = {
     val p = chars.indexWhere(_.id == c.id)
     require(p != -1)
     val replacement = c.copy(isVisible=false)
@@ -157,63 +168,37 @@ case class WString(
     copy(chars = (before :+ replacement) ++ (rest drop 1) )
   }
 
-  // # Integrate a remotely received insert or delete, giving a new `WString`
-  def integrate(op: Operation): WString = op match {
+
+  // # Integrate a remotely received insert or delete.
+  // The result is a new `WString` plus a list of the operations that were applied.
+  // The operations can be:
+  // - empty, if the operation was queued
+  // - one operation, the typical expected case
+  // - more than one operation, if the integration unblocked items on the queue.
+  def integrate(op: Operation): (Vector[Operation], WString) = op match {
     // - Don't insert the same ID twice:
-    case InsertOp(c,_) if chars.exists(_.id == c.id) => this
+    case InsertOp(c,_) if chars.exists(_.id == c.id) => (Vector.empty, this)
 
     // - Insert can go ahead if the next & prev exist:
-    case InsertOp(c,_) if canIntegrate(op) => integrate(c, c.prev, c.next)
+    case InsertOp(c,_) if canIntegrate(op) =>
+      val (ops, doc) = integrate(c, c.prev, c.next).dequeue()
+      (op +: ops, doc)
 
     // - We can delete any char that exists:
-    case DeleteOp(c,_) if canIntegrate(op) => hide(c)
+    case DeleteOp(c,_) if canIntegrate(op) => (Vector(op), hide(c))
 
     // - Anything else goes onto the queue for another time:
-    case _                                 => enqueue(op)
-  }
-
-
-  // # A local insert of a character, producing an operation to send around the network.
-  def insert(ch: Char, visiblePos: Int): (InsertOp, WString) = {
-
-    require(visiblePos > -1)
-
-    val prev: Id =
-      if (visiblePos == 0) Beginning
-      else visible(visiblePos-1).id
-
-    val next: Id =
-      if (visiblePos >= visible.length) Ending
-      else visible(visiblePos).id // Not +1 because we are inserting just before this char
-
-    val wchar = WChar(CharId(site, nextTick), ch, prev, next)
-    val op = InsertOp(wchar, site)
-    val wstring = integrate(op)
-
-    (op, wstring.tick)
-  }
-
-  // # Remove a local character, giving the operation and updated `WString`.
-  def delete(visiblePos: Int): (DeleteOp, WString) = {
-
-    require(visiblePos > -1)
-    require(visiblePos < visible.length)
-
-    val wchar = visible(visiblePos)
-    val op = DeleteOp(wchar, site)
-    val wstring = integrate(op)
-
-    (op, wstring)
+    case _                                 => (Vector.empty, enqueue(op))
   }
 
   @scala.annotation.tailrec
-  private[this] def integrate(c: WChar, before: Id, after: Id): WString = {
+  private def integrate(c: WChar, before: Id, after: Id): WString = {
 
     // Looking at all the characters between the previous and next positions:
     subseq(before, after) match {
-      // - when where's no option about where, just insert
+      // - when where's no option about where to insert, perform the insert
       case Vector() =>
-        ins(c, indexOf(after)).dequeue
+        ins(c, indexOf(after))
 
       // - when there's a choice, locate an insert point based on `Id.<`
       case search: Vector[WChar] =>
@@ -231,4 +216,37 @@ case class WString(
       c <- cs
       if cs.forall(x => x.id != c.next && x.id != c.prev)
     } yield c
+
+  // # A local insert of a character, producing an operation to send around the network.
+  def insert(ch: Char, visiblePos: Int): (InsertOp, WString) = {
+
+    require(visiblePos > -1)
+
+    val prev: Id =
+      if (visiblePos == 0) Beginning
+      else visible(visiblePos-1).id
+
+    val next: Id =
+      if (visiblePos >= visible.length) Ending
+      else visible(visiblePos).id // Not +1 because we are inserting just before this char
+
+    val wchar = WChar(CharId(site, nextTick), ch, prev, next)
+    val op = InsertOp(wchar, site)
+    val (_, wstring) = integrate(op)
+
+    (op, wstring.tick)
+  }
+
+  // # Remove a local character, giving the operation and updated `WString`.
+  def delete(visiblePos: Int): (DeleteOp, WString) = {
+
+    require(visiblePos > -1)
+    require(visiblePos < visible.length)
+
+    val wchar = visible(visiblePos)
+    val op = DeleteOp(wchar, site)
+    val (_, wstring) = integrate(op)
+
+    (op, wstring)
+  }
 }
