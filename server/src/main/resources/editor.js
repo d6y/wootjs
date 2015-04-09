@@ -32,14 +32,14 @@
     /* -- From server to client functions: remote integration -------------------------------------- */
 
     // Convert a WOOT operation to an ACE delta object for WOOT index i:
-    function asDelta(op, i) {
+    function asDelta(ch, isVisible, i) {
       return {
-        action: op.op == "ins" ? "insertText" : "removeText",
+        action: isVisible ? "insertText" : "removeText",
         range: {
           start: pos(i),
-          end: pos(i + op.wchar.alpha.length)
+          end:   pos(i + 1)
         },
-        text: op.wchar.alpha
+        text: ch
       };
     }
 
@@ -56,6 +56,16 @@
         editor.getSession().getDocument().applyDeltas([delta]);
       });
     };
+
+    var updateEditor = function(ch, isVisible, visiblePos) {
+      console.log("Updating Editor", ch, isVisible, visiblePos);
+      var delta = asDelta(ch, isVisible, visiblePos);
+      offAir(function() {
+        editor.getSession().getDocument().applyDeltas([delta]);
+      });
+
+
+    }
 
     // The handler will first be called with a WString, and from then on just with an operation
     var messageHandler = function(v) {
@@ -74,8 +84,6 @@
         $('#lastIdRecv').html(JSON.stringify(v.wchar.id));
         $('#qSize').html(model.queue.length);
         $('#clockValue').html(model.clockValue);
-
-
       }
       else {
         trace("Ignoring ", v);
@@ -94,7 +102,7 @@
 
     var client;
     jQuery(document).ready(function() {
-      client = client.WootClient();
+      client = new client.WootClient(updateEditor);
       wsInit();
     });
 

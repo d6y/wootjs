@@ -1,6 +1,6 @@
 package client
 
-import scala.util.Try
+import scala.util.{Try,Failure,Success}
 import scala.scalajs.js
 import js.annotation.JSExport
 
@@ -8,53 +8,66 @@ import woot._
 import upickle._
 
 @JSExport
-object WootClient {
+class WootClient(onReceive: js.Function3[String,Boolean,Int,Unit]) {
 
-  // This will be the client copy of the document
+  // This is the client copy of the document
   var doc = WString.empty()
 
+  // The web socket works in terms of text
+  type Json = String
+
+  //
+  // Local operations, producing a WChar to send across the network
+  //
+
   @JSExport
-  def insert(s: String, pos: Int): String = {
+  def insert(s: String, pos: Int): Json = {
     val (op, wstring) = doc.insert(s.head, pos);
     doc = wstring;
     write(op)
   }
 
   @JSExport
-  def delete(s: String, pos: Int): String = {
+  def delete(s: String, pos: Int): Json = {
     "{}"
   }
 
+  //
+  // Ingesting a remote operation or document
+  //
 
   @JSExport
   def ingest(json: String): Unit = {
     println(s"Ingesting: $json")
 
-    // We can be sent a whole WString (an object)
-    // or an individual Operation (which is an array)
-    // (These are the format used by uPickle)
-
+    // We can be sent a whole WString or an individual Operation.
     // We'll simply try to decode each type:
     val in = Try(read[WString](json)) orElse Try(read[Operation](json))
 
-    in.toOption match {
-      case Some(w: WString) =>
+    in match {
+      case Success(w: WString) =>
         println(s"Becoming new document: $w")
         doc = w
 
-      case Some(op: Operation) if op.from == doc.site =>
+      case Success(op: Operation) if op.from == doc.site =>
         // We receive back operations we sent.
         // Useful for confirming receipt, but no action required.
-        println(s"Ignoring message this site sent")
+        println(s"Ignoring echo of our own operation")
 
-      case Some(op: Operation) =>
+      case Success(op: Operation) =>
         println(s"Decoded Operation $op")
-        val wstring = doc.integrate(op)
-        println(s"Doc now $wstring")
+        val (ops, wstring) = doc.integrate(op)
+
+        // Become the updated document:
         doc = wstring
 
-      case err =>
-        println(s"Unrecognized msg $err")
+        // Side effects:
+        ops.foreach { op =>
+          onReceive(op.wchar.alpha.toString, op.wchar.isVisible, doc.visibleIndexOf(op.wchar.id))
+        }
+
+      case Failure(err) =>
+        println(s"Unrecognized $json -> $err")
     }
   }
 

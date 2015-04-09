@@ -113,6 +113,21 @@ case class WString(
     p
   }
 
+  // # Lookup the visible position of the given `id`.
+  //
+  // Useful for updating an external editor, for example.
+  // Id must exist in the document.
+  // TODO: Needs to be slightly more sophisticated for deleted IDs.
+  def visibleIndexOf(id: Id): Int = {
+    val p = id match {
+      case Ending    => visible.length
+      case Beginning => 0
+      case _         => visible.indexWhere(_.id == id)
+    }
+    require(p != -1)
+    p
+  }
+
   // ## The parts of this `WString` between `prev` and `next`
   // ...but excluding the neighbours themselves as required (see [RR5580] p. 8)
   private[this] def subseq(prev: Id, next: Id): Vector[WChar] = {
