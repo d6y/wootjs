@@ -29,8 +29,6 @@ function pos(idx) {
   return editor.getSession().getDocument().indexToPosition(idx);
 }
 
-/* -- From server to client functions: remote integration -------------------------------------- */
-
 // Convert a WOOT operation to an ACE delta object for WOOT index i:
 function asDelta(ch, isVisible, i) {
   return {
@@ -43,50 +41,13 @@ function asDelta(ch, isVisible, i) {
   };
 }
 
-function isDocumentMessage(v) { return existy(v.chars); }
-
-function isOpToIntegrate(v,model) {
-  return v.wchar && v.wchar.id && v.from !== model.site;
-}
-
 var updateEditor = function(ch, isVisible, visiblePos) {
   console.log("Updating Editor", ch, isVisible, visiblePos);
   var delta = asDelta(ch, isVisible, visiblePos);
   offAir(function() {
     editor.getSession().getDocument().applyDeltas([delta]);
   });
-
-
 }
-
-// The handler will first be called with a WString, and from then on just with an operation
-var messageHandler = function(v) {
-  trace("Handling: ", v);
-  if (isDocumentMessage(v)) {
-    model.init(v.site, v.clockValue, v.chars, v.queue);
-    $('#siteId').html(v.site);
-    $('#clockValue').html(v.clockValue);
-    $('#qSize').html(model.queue.length);
-
-    offAir(function() { editor.getSession().getDocument().setValue(model.text()); });
-  }
-  else if (isOpToIntegrate(v,model)) {
-    model.remoteIntegrate(v, afterRemoteIntegration);
-    $('#lastCharRecv').html(v.wchar.alpha+" "+v.op);
-    $('#lastIdRecv').html(JSON.stringify(v.wchar.id));
-    $('#qSize').html(model.queue.length);
-    $('#clockValue').html(model.clockValue);
-  }
-  else {
-    trace("Ignoring ", v);
-    alert(v);
-  }
-};
-
-var shutdownHandler = function() {
-  alert("Remote has closed.");
-};
-
 
 /* -- From client to server functions: local integration ----------------------------------------- */
 
