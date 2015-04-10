@@ -4,6 +4,22 @@ scalaVersion in ThisBuild := "2.11.6"
 
 resolvers in ThisBuild += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 
+scalacOptions in ThisBuild ++= Seq(
+  "-deprecation",
+  "-encoding", "UTF-8",
+  "-unchecked", // Enable additional warnings where generated code depends on assumptions
+  "-feature",
+  "-language:implicitConversions",
+  "-language:postfixOps",
+  "-Xlint", // Enable recommended additional warnings.
+  "-Xfatal-warnings",
+  "-Yno-adapted-args",
+  "-Ywarn-dead-code",
+  "-Ywarn-numeric-widen",
+  "-Ywarn-value-discard",
+  "-Xfuture"
+  )
+
 lazy val root = project.in(file(".")).aggregate(client, server).settings(
   publish := {},
   publishLocal := {}
@@ -11,7 +27,7 @@ lazy val root = project.in(file(".")).aggregate(client, server).settings(
 
 lazy val wootModelSettings = Seq(
     name := "woot",
-    version := "1.0-SNAPSHOT",
+    version := "1.0.0-SNAPSHOT",
     unmanagedSourceDirectories in Compile +=
       baseDirectory.value / ".." / "woot-model" / "src" / "main" / "scala",
       libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.2.8"
@@ -20,8 +36,7 @@ lazy val wootModelSettings = Seq(
 lazy val wootLib = project.in(file("woot-model"))
   .settings(
     name := "woot-lib",
-    libraryDependencies ++= scalacheck ++ specs2,
-    scalacOptions in Test ++= Seq("-Yrangepos")
+    libraryDependencies ++= scalacheck
   )
 
 lazy val client = project.in(file("client"))
@@ -36,16 +51,11 @@ lazy val server = project.in(file("server"))
   .settings(wootModelSettings: _*)
   .settings(
     name := "woot-server",
-    libraryDependencies   ++= scalacheck ++ specs2 ++ http4s ++ logback,
-    scalacOptions in Test ++= Seq("-Yrangepos"),
+    libraryDependencies ++= scalacheck ++ http4s ++ logback,
     resources in Compile += (fastOptJS in (client, Compile)).value.data
   )
 
 lazy val scalacheck = Seq("org.scalacheck" %% "scalacheck" % "1.12.2" % "test")
-
-lazy val specs2 = Seq(
-  "org.specs2" %% "specs2-core"       % "3.2" % "test",
-  "org.specs2" %% "specs2-scalacheck" % "3.2" % "test")
 
 val http4sVersion = "0.6.2"
 
