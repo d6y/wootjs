@@ -117,12 +117,17 @@ case class WString(
   //
   // Useful for updating an external editor, for example.
   // Id must exist in the document.
-  // TODO: Needs to be slightly more sophisticated for deleted IDs.
   def visibleIndexOf(id: Id): Int = {
+
+    // To allow a deleted character to be located in an editor
+    // (e.g., to side effect and update the editor)
+    // we will locate where a deleted character was:
+    lazy val indexWas = chars.take(indexOf(id)).filter(_.isVisible).length
+
     val p = id match {
       case Ending    => visible.length
       case Beginning => 0
-      case _         => visible.indexWhere(_.id == id)
+      case _         => indexWas
     }
     require(p != -1)
     p
