@@ -7,18 +7,18 @@ resolvers in ThisBuild += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz
 scalacOptions in ThisBuild ++= Seq(
   "-deprecation",
   "-encoding", "UTF-8",
-  "-unchecked", // Enable additional warnings where generated code depends on assumptions
+  "-unchecked",
   "-feature",
   "-language:implicitConversions",
   "-language:postfixOps",
-  "-Xlint", // Enable recommended additional warnings.
+  "-Xlint",
   "-Xfatal-warnings",
   "-Yno-adapted-args",
   "-Ywarn-dead-code",
   "-Ywarn-numeric-widen",
   "-Ywarn-value-discard",
   "-Xfuture"
-  )
+)
 
 lazy val root = project.in(file(".")).aggregate(client, server).settings(
   publish := {},
@@ -33,13 +33,6 @@ lazy val wootModelSettings = Seq(
   unmanagedSourceDirectories in Test +=
     baseDirectory.value / ".." / "woot-model" / "src" / "test" / "scala",
   libraryDependencies ++= upickle.value ++ scalacheck.value
-)
-
-// This project exists to be able to generate code coverage reports
-lazy val coverage = project.in(file("woot-model"))
-  .settings(
-  name := "coverage",
-  libraryDependencies ++= scalacheck.value
 )
 
 lazy val client = project.in(file("client"))

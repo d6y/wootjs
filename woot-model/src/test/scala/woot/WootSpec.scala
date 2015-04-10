@@ -3,14 +3,14 @@ package woot
 import util.Random
 
 import org.scalacheck.{Properties, Gen}
-import org.scalacheck.Prop.forAll
+import org.scalacheck.Prop.{forAll, BooleanOperators}
 import org.scalacheck.Arbitrary, Arbitrary.arbitrary
 
 object WootModelSpec extends Properties("WOOT Model") with WootOperationHelpers {
 
   import NonEmptyStringGenerator._
 
-  property("local insert preserves original text ") = forAll { (text: String) =>
+  property("local insert preserves original text") = forAll { (text: String) =>
     val (_, wstring) = applyWoot(text)
     wstring.text == text
   }
@@ -45,8 +45,20 @@ object WootModelSpec extends Properties("WOOT Model") with WootOperationHelpers 
 
         // Both sites should have the same text:
         site1Final.text == site2Final.text
-      }
+    }
   }
+
+  property("local delete removes a character") = forAll { text: NonEmptyString =>
+    forAll(Gen.choose(0, text.length-1)) { index: Int =>
+      val (_, doc)     = applyWoot(text)
+      val (_, updated) = doc.delete(index)
+      val full: String = text // coerce to regular string to access take and drop
+      val expected = full.take(index) + full.drop(index+1)
+      (updated.text == expected) :| s"${updated.text} not $expected"
+    }
+  }
+
+
 }
 
 // Functions to make it easier to work with WOOT and Operations in tests
