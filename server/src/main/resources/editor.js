@@ -106,8 +106,6 @@ var broadcast1 = function(opType, ch, pos) {
   trace("Broadcasting: ",opType," on ",ch," @ ",pos);
   var op = opType === "insertText" ? client.insert(ch, pos) : client.delete(pos);
   trace("Back out to "+op);
-
-  $('#lastCharSent').html(ch+" "+opType);
   doSend(op);
 };
 

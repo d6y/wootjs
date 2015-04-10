@@ -10,9 +10,25 @@
     <script src="ace/ace.js"             defer></script>
     <script src="editor.js"              defer></script>
     <style type="text/css" media="screen">
+    body {
+      padding: 0;
+      margin: 0;
+      font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+      font-weight: 300;
+    }
+    #console {
+      background-color: #dddddd;
+    }
+    #wsStatus {
+      margin-left: 0.9em;
+      color: #ff9000;
+    }
+    #wsMsg {
+      margin-left: 0.5em;
+    }
     #editor {
       position: absolute;
-      top: 200px;
+      top: 2em;
       right: 0;
       bottom: 0;
       left: 0;
@@ -22,34 +38,11 @@
   <body>
 
     <div id="console">
-
       <div>
-        Socket:  <span id="wsStatus">?</span>
+        <span id="wsStatus">⬤</span> <span id="wsMsg"></span>
       </div>
-
-      <table width="60%">
-        <tr>
-          <th colspan="2">ACE</th>
-          <th colspan="2">Send</th>
-          <th colspan="2">Receive</th>
-        </tr>
-
-        <tr>
-          <td>Event type:</td><td><span id="lastAceEvent">?</span></td>
-          <td>Last char: </td><td><span id="lastCharSent">?</span></td>
-          <td>Last char: </td><td><span id="lastCharRecv">?</span></td>
-        </tr>
-
-        <tr>
-          <td>-</td><td>-</td>
-          <td>Last ID:</td><td><span id="lastIdSent">?</span></td>
-          <td>Last ID:</td><td><span id="lastIdRecv">?</span></td>
-        </tr>
-
-      </table>
     </div>
 
     <div id="editor"></div>
-
   </body>
 </html>

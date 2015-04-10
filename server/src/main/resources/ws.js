@@ -1,11 +1,18 @@
+/*
+
+This is pretty much the http://websockets.org/ example code
+with small changes.
+
+*/
 var wsUri = "ws://127.0.0.1:8080/edit/default";
-var output;
+var statusIndicator, statusMsg;
 var websocket;
 
 function wsInit()
 {
-  output = document.getElementById("wsStatus");
-  status("Connecting...");
+  statusIndicator = document.getElementById("wsStatus");
+  statusMsg = document.getElementById("wsMsg");
+  status("#ff9000", "Connecting...");
   websocket = new WebSocket(wsUri);
   testWebSocket();
 }
@@ -18,39 +25,30 @@ function testWebSocket()
   websocket.onerror = function(evt) { onError(evt) };
 }
 
-function onOpen(evt)
-{
-  status("CONNECTED");
-  //doSend("WebSocket is here");
+function onOpen(evt) {
+  status("#00ff00", "Editing: default");
 }
 
-function onClose(evt)
-{
-  console.log(evt);
-  status("DISCONNECTED");
+function onClose(evt) {
+  // console.log(evt);
+  status("#ff0000", "Connection Closed");
 }
 
 function onMessage(evt)
 {
-  //status('<span style="color: blue;">RESPONSE: ' + evt.data+'</span>');
-  console.log(evt);
-  console.log(JSON.parse(evt.data));
+  // console.log(evt, JSON.parse(evt.data));
   client.ingest(evt.data);
- // websocket.close();
 }
 
-function onError(evt)
-{
-  status('<span style="color: red;">ERROR:</span> ' + evt.data);
+function onError(evt) {
+  status("#ff000", evt.data);
 }
 
-function doSend(message)
-{
-  status("SENT: " + message);
+function doSend(message) {
   websocket.send(message);
 }
 
-function status(message) {
-   output.innerHTML = message;
+function status(colour, msg) {
+   statusIndicator.style.color = colour;
+   statusMsg.innerHTML = msg;
 }
-
