@@ -22,14 +22,16 @@ class WootClient(onReceive: js.Function3[String,Boolean,Int,Unit]) {
 
   @JSExport
   def insert(s: String, pos: Int): Json = {
-    val (op, wstring) = doc.insert(s.head, pos);
-    doc = wstring;
+    val (op, wstring) = doc.insert(s.head, pos)
+    doc = wstring
     write(op)
   }
 
   @JSExport
-  def delete(s: String, pos: Int): Json = {
-    "{}"
+  def delete(pos: Int): Json = {
+    val (op, wstring) = doc.delete(pos)
+    doc = wstring
+    write(op)
   }
 
   //
@@ -37,12 +39,12 @@ class WootClient(onReceive: js.Function3[String,Boolean,Int,Unit]) {
   //
 
   @JSExport
-  def ingest(json: String): Unit = {
+  def ingest(json: Json): Unit = {
     println(s"Ingesting: $json")
 
     // We can be sent a whole WString or an individual Operation.
     // We'll simply try to decode each type:
-    val in = Try(read[WString](json)) orElse Try(read[Operation](json))
+    val in = Try(read[Operation](json)) orElse Try(read[WString](json))
 
     in match {
       case Success(w: WString) =>
@@ -62,13 +64,13 @@ class WootClient(onReceive: js.Function3[String,Boolean,Int,Unit]) {
         doc = wstring
 
         // Side effects:
-        ops.foreach { op =>
-          onReceive(op.wchar.alpha.toString, op.wchar.isVisible, doc.visibleIndexOf(op.wchar.id))
+        ops.foreach {
+          case InsertOp(ch, _) => onReceive(ch.alpha.toString, true,  doc.visibleIndexOf(ch.id))
+          case DeleteOp(ch, _) => onReceive(ch.alpha.toString, false, doc.visibleIndexOf(ch.id))
         }
 
       case Failure(err) =>
         println(s"Unrecognized $json -> $err")
     }
   }
-
 }
