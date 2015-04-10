@@ -1,14 +1,49 @@
-# Woot with Scala.js
+# WOOT with Scala.js
+
+Collaborative text editing, using the WOOT algorithm.
+Implemented in Scala, running on both the JVM and a JavaScript interpreter.
 
 ## For the Impatient
 
-  $ sbt "project server" run
+    $ sbt "project server" run
 
-Then open _http://127.0.0.1:8080/index.html_.
+Then open _http://127.0.0.1:8080/_ to edit a document.
+
+Open another browser at the same address, and you'll get the idea of collaboration.
+
+## What is WOOT?
+
+WOOT is a collaborative text editing algorithm, allowing multiple users ("sites") to insert or delete characters (`WChar`) from a shared document (`WString`). The algorithm preserves the intention of users, and ensures that the text converges to the same state for all users.
+
+Its key properties are simplicity, and avoiding the need for a reliable network or vector clocks (it can be peer-to-peer).
+
+The key references are:
+
+* Oster _et al._ (2005) _Real time group editors without Operational transformation_, report paper 5580, INRIA - [PDF](http://www.loria.fr/~oster/pmwiki/pub/papers/OsterRR05a.pdf)
+
+* Oster _et al._ (2006) _Data Consistency for P2P Collaborative Editing_, CSCW'06 - [PDF](http://hal.archives-ouvertes.fr/docs/00/10/85/23/PDF/OsterCSCW06.pdf)
+
+WOOT stands for With Out [Operational Transforms](https://en.wikipedia.org/wiki/Operational_transform).
+
+
+## This Project
+
+This project contains a Scala implementation of WOOT, 
+which has also been compiled to JavaScript using Scala.js.
+
+The project is an example of sharing one implementation (the WOOT model)
+in both a JavaScript and Scala context.
+
+The editor is [ACE](http://ace.c9.io/), which is wired up to the
+Scala.js implementation of WOOT locally within the browser.
+Updates are sent over a web socket to a server which also maintains a copy of the model, but on the JVM.
+
+![Screen Shot of Editor being Used](docs/poem.png)
+
 
 ## What Happens When You Run the Web Server
 
-The above code will likely produce:
+Running the sever code will likely produce:
 
 ```
 $ sbt "project server" run
