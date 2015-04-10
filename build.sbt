@@ -55,9 +55,12 @@ lazy val server = project.in(file("server"))
   .settings(
     name := "woot-server",
     libraryDependencies ++= http4s ++ logback,
-    resources in Compile += (fastOptJS in (client, Compile)).value.data
+    resources in Compile += (fastOptJS in (client, Compile)).value.data,
+    testOptions in Test += Tests.Argument(TestFrameworks.ScalaCheck,
+      "-maxSize",            "200", // Longer strings
+      "-minSuccessfulTests", "250"  // More tests
+    )
   )
-
 
 // I happen to like defining dependencies as Seq()
 // https://github.com/vmunier/play-with-scalajs-example/issues/20#issuecomment-56589251

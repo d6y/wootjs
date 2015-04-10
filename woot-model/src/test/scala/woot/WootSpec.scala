@@ -10,9 +10,6 @@ object WootModelSpec extends Properties("WOOT Model") with WootOperationHelpers 
 
   import NonEmptyStringGenerator._
 
-  // More tests, longer texts (nb: the run time of these tests is of the ordermaxSize ^ 3)
-  //implicit val params = Parameters(minTestsOk=250, maxSize=200)
-
   property("local insert preserves original text ") = forAll { (text: String) =>
     val (_, wstring) = applyWoot(text)
     wstring.text == text
