@@ -1,23 +1,45 @@
+/*
 
-function existy(x) { return x != null }
+Editor controls.
 
-var trace = function() { console.log.apply(console, arguments); };
+- Creates a WOOT client.
+- Connects the web socket.
+- Provides display functions for the WOOT client to call.
+- Broadcasts changes to the web socket.
+*/
+var trace = function() { if (console & console.log) console.log.apply(console, arguments); };
 //var trace = function() {};
+
+//
+// Not all changes need to be broadcast down the web socket
+//
+// For example, when we insert a character we've received,
+// we don't rebroadcast that.
+//
 
 var onAir = true; // Are we broadcasting changes?
 
-// Execute a block without broadcasting the change
-function offAir(block) {
+// Execute a code block without broadcasting the change
+function offAir(thunk) {
   var was = onAir;
   onAir = false;
-  block();
+  thunk();
   onAir = was;
 }
+
+//
+// The editor itself
+//
 
 var editor = ace.edit("editor");
 editor.setTheme("ace/theme/merbivore");
 editor.getSession().getDocument().setNewLineMode("unix");
 editor.getSession().setMode("ace/mode/markdown");
+
+
+//
+// Translation of WOOT changes into Ace changes (deltas)
+//
 
 // Convert ACE "position" (row/column) to WOOT "index":
 function idx(position) {
@@ -35,22 +57,28 @@ function asDelta(ch, isVisible, i) {
     action: isVisible ? "insertText" : "removeText",
     range: {
       start: pos(i),
-      end:   pos(i + 1)
+      end:   pos(i+1)
     },
     text: ch
   };
 }
 
+//
+// Call back for the WOOT client to trigger side-effects in the editor
+// I.e., add and remove characters
+//
+
 var updateEditor = function(ch, isVisible, visiblePos) {
-  console.log("Updating Editor", ch, isVisible, visiblePos);
+  trace("Updating Editor", ch, isVisible, visiblePos);
   var delta = asDelta(ch, isVisible, visiblePos);
   offAir(function() {
     editor.getSession().getDocument().applyDeltas([delta]);
   });
 }
 
-/* -- From client to server functions: local integration ----------------------------------------- */
-
+//
+// On page load, create a client and establish a web socket connection
+//
 // TODO: Make editor read-only until connected to server?
 
 var client;
@@ -58,6 +86,11 @@ jQuery(document).ready(function() {
   client = new client.WootClient(updateEditor);
   wsInit();
 });
+
+
+//
+// Functions to broadcast updates down the web socket
+//
 
 // `text` is of arbitrary size. For now we serialize as individual operations:
 var broadcast = function(op, text, range) {
@@ -87,6 +120,10 @@ function cat(lines) {
       .value());
   return combined;
 }
+
+//
+// Wiring up actions to ACE events
+//
 
 var aceCommands = {
   insertText:  function(text,range) { broadcast("insertText", text, range); },
