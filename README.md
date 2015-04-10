@@ -67,9 +67,23 @@ This reflects the structure of the project:
 * _woot-model_ - Scala source code shared by both the client and server projects. This is the WOOT algorithm, implemented once, used in the JVM and the JavaScript runtime.
 
 
-## Code Coverage
+## Tests
 
-    sbt> project wootLib
+The tests for this project are implemented as [ScalaCheck](http://www.scalacheck.org/) properties.
+
+### Running the tests in the JVM
+
+   sbt> project server
+   sbt> test
+
+### Running the tests in a JavaScript interpreter
+
+   sbt> project client
+   sbt> test
+
+### Code Coverage
+
+    sbt> project coverage
     sbt> coverage
     sbt> test
 
