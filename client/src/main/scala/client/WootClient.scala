@@ -8,7 +8,9 @@ import woot._
 import upickle._
 
 @JSExport
-class WootClient(onReceive: js.Function3[String,Boolean,Int,Unit]) {
+class WootClient(
+    onLoad:    js.Function1[String, Unit],
+    onReceive: js.Function3[String,Boolean,Int,Unit]) {
 
   // This is the client copy of the document
   var doc = WString.empty()
@@ -50,6 +52,7 @@ class WootClient(onReceive: js.Function3[String,Boolean,Int,Unit]) {
       case Success(w: WString) =>
         println(s"Becoming new document: $w")
         doc = w
+        onLoad(doc.text)
 
       case Success(op: Operation) if op.from == doc.site =>
         // We receive back operations we sent.

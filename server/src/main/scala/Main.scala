@@ -31,7 +31,7 @@ class WootRoutes {
 
   // Local view of the document, starting from blank.
   // In a real system, we'd load from a backing store based on the name or ID of the document
-  val doc = new WString(SiteId("server"), ClockValue(0))
+  var doc = new WString(SiteId("server"), ClockValue(0))
 
   // The queue of WOOT operations:
   private val ops = topic[Operation]()
@@ -48,7 +48,10 @@ class WootRoutes {
         _ match {
           case Text(json, _) =>
             logger.info(s"Received: $json")
-            read[Operation](json)
+            val op = read[Operation](json)
+            val (_, updated) = doc.integrate(op)
+            doc = updated
+            op
 //          case nonText       =>
 //            logger.warn(s"Non Text received: $nonText")
 //            NoOp

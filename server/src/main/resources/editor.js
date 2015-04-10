@@ -76,6 +76,13 @@ var updateEditor = function(ch, isVisible, visiblePos) {
   });
 }
 
+// Populate the editor with an existing document
+var setEditor = function(text) {
+  offAir(function() {
+    editor.getSession().getDocument().setValue(text);
+  });
+};
+
 //
 // On page load, create a client and establish a web socket connection
 //
@@ -83,7 +90,7 @@ var updateEditor = function(ch, isVisible, visiblePos) {
 
 var client;
 jQuery(document).ready(function() {
-  client = new client.WootClient(updateEditor);
+  client = new client.WootClient(setEditor, updateEditor);
   wsInit();
 });
 
