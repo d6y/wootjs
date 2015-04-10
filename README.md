@@ -1,7 +1,7 @@
 # WOOT with Scala.js
 
-Collaborative text editing, using the WOOT algorithm.
-Implemented in Scala, running on both the JVM and a JavaScript interpreter.
+* Collaborative text editing, using the WOOT algorithm.
+* Implemented in Scala, running on both the JVM and a JavaScript interpreter.
 
 ## For the Impatient
 
@@ -28,7 +28,7 @@ WOOT stands for With Out [Operational Transforms](https://en.wikipedia.org/wiki/
 
 ## This Project
 
-This project contains a Scala implementation of WOOT, 
+This project contains a Scala implementation of WOOT,
 which has also been compiled to JavaScript using Scala.js.
 
 The project is an example of sharing one implementation (the WOOT model)
