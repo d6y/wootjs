@@ -87,6 +87,18 @@ object WootModelSpec extends Properties("WOOT Model") with WootOperationHelpers 
       // the starting point (less 1) plus the number of operations applied
       finalDoc.maxClockValue(site).value == (originalDoc.nextTick.value - 1 + ops.length)
     }
+
+  property("can locate visible index of a character after deletion") = forAll { text: NonEmptyString =>
+    forAll(text.chooseIndex) { index: Int =>
+      // It is convenient to apply an operation to WOOT, such as delete, but
+      // then be able to tell what the visible index was of the character
+      // just removed.  Without this you need to lookup the character location
+      // before you delete it (which is OK, but not always convenient)
+      val (ops, doc)     = applyWoot(text)
+      val (op, updated)  = doc.delete(index)
+      updated.visibleIndexOf(op.wchar.id) == index
+    }
+  }
 }
 
 // Functions to make it easier to work with WOOT and Operations in tests
