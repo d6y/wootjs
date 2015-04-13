@@ -9,17 +9,11 @@ sealed trait Id {
 }
 
 object Beginning extends Id {
-  def <(that: Id) = that match {
-    case Beginning => false
-    case _         => true
-  }
-
-  override def toString = "Beginning"
+  def <(that: Id) = true
 }
 
 object Ending extends Id {
   def <(that: Id) = false
-  override def toString = "Ending"
 }
 
 case class SiteId(value: String) extends AnyVal {
@@ -40,9 +34,6 @@ case class ClockValue(value: Int) extends AnyVal {
 
 
 case class CharId(ns: SiteId, ng: ClockValue) extends Id {
-  // Each new character retains the site id, but increments the logical local clock, making the `Id` unique.
-  def incr = copy(ng = ng.incr)
-
   // The `<` comparison is defined in _Definition 7_ (p. 8) of [RR5580]
   def <(that: Id) = that match {
     case CharId(site, clock) => (ns < site) || (ns == site && ng < clock)
