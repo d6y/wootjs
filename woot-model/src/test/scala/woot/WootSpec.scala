@@ -66,7 +66,6 @@ object WootModelSpec extends Properties("WOOT Model") with WootOperationHelpers 
     }
   }
 
-
   property("remote delete produces consistent results") = forAll { text: NonEmptyString =>
     forAll(text.chooseIndex) { index: Int =>
       // Construct a document from the text and randomly delete a character:
@@ -78,6 +77,16 @@ object WootModelSpec extends Properties("WOOT Model") with WootOperationHelpers 
       updated.text == site2.text
     }
   }
+
+  property("site max clock value is the largest operation from that site") =
+    forAll { text: NonEmptyString =>
+      val originalDoc = WString.empty()
+      val site = originalDoc.site
+      val (ops, finalDoc) = applyWoot(text, originalDoc)
+      // As `nextTick` is an unused value, the maximum value will the
+      // the starting point (less 1) plus the number of operations applied
+      finalDoc.maxClockValue(site).value == (originalDoc.nextTick.value - 1 + ops.length)
+    }
 }
 
 // Functions to make it easier to work with WOOT and Operations in tests
@@ -91,13 +100,13 @@ trait WootOperationHelpers {
   }
 
   // Turn text into a sequence of operations on a new WString
-  def applyWoot(text: String): (Vector[Operation], WString) = {
+  def applyWoot(text: String, doc: WString=WString.empty()): (Vector[Operation], WString) = {
 
     // We're going to accumulate a list of operations on a WString:
     type State = (Vector[Operation], WString)
 
-    // The starting point is a new WString and no operations:
-    val zero: State = (Vector.empty, WString.empty())
+    // The starting point is no operations and a WString:
+    val zero: State = (Vector.empty, doc)
 
     // Take each character and locally insert it at the correct position:
     (text.zipWithIndex).foldLeft[State](zero) {
