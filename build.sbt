@@ -55,6 +55,13 @@ lazy val server = project.in(file("server"))
     )
   )
 
+// This project exists to be able to generate code coverage reports
+lazy val coverage = project.in(file("woot-model"))
+  .settings(
+  name := "coverage",
+  libraryDependencies ++= scalacheck.value
+)
+
 // I happen to like defining dependencies as Seq()
 // https://github.com/vmunier/play-with-scalajs-example/issues/20#issuecomment-56589251
 
