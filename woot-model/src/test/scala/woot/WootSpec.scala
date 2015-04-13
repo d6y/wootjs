@@ -48,6 +48,14 @@ object WootModelSpec extends Properties("WOOT Model") with WootOperationHelpers 
     }
   }
 
+  property("insert is idempotent") = forAll { text: NonEmptyString =>
+    val (ops, doc) = applyWoot(text)
+    forAll(Gen.oneOf(ops)) { op: Operation =>
+      val (ops, updated) = doc.integrate(op)
+      (updated eq doc) && ops.length == 0
+    }
+  }
+
   property("local delete removes a character") = forAll { text: NonEmptyString =>
     forAll(text.chooseIndex) { index: Int =>
       val (_, doc)     = applyWoot(text)
