@@ -49,7 +49,7 @@ object WootModelSpec extends Properties("WOOT Model") with WootOperationHelpers 
   }
 
   property("local delete removes a character") = forAll { text: NonEmptyString =>
-    forAll(Gen.choose(0, text.length-1)) { index: Int =>
+    forAll(text.chooseIndex) { index: Int =>
       val (_, doc)     = applyWoot(text)
       val (_, updated) = doc.delete(index)
       val full: String = text // coerce to regular string to access take and drop
@@ -59,6 +59,17 @@ object WootModelSpec extends Properties("WOOT Model") with WootOperationHelpers 
   }
 
 
+  property("remote delete produces consistent results") = forAll { text: NonEmptyString =>
+    forAll(text.chooseIndex) { index: Int =>
+      // Construct a document from the text and randomly delete a character:
+      val (ops, doc)     = applyWoot(text)
+      val (op, updated)  = doc.delete(index)
+      // Apply the operations to a new site (order is irrelevant)
+      val site2 = applyOps(Random shuffle (ops :+ op))
+      // The resultant text should be consistent:
+      updated.text == site2.text
+    }
+  }
 }
 
 // Functions to make it easier to work with WOOT and Operations in tests
@@ -72,10 +83,10 @@ trait WootOperationHelpers {
   }
 
   // Turn text into a sequence of operations on a new WString
-  def applyWoot(text: String): (Vector[InsertOp], WString) = {
+  def applyWoot(text: String): (Vector[Operation], WString) = {
 
     // We're going to accumulate a list of operations on a WString:
-    type State = (Vector[InsertOp], WString)
+    type State = (Vector[Operation], WString)
 
     // The starting point is a new WString and no operations:
     val zero: State = (Vector.empty, WString.empty())
@@ -89,8 +100,8 @@ trait WootOperationHelpers {
   }
 
   // A variation on applyWoot where we insert at the same position in an existing WString
-  def applyWoot(w: WString, text: String, pos: Int): (Vector[InsertOp], WString) = {
-    text.foldLeft((Vector.empty[InsertOp], w)) {
+  def applyWoot(w: WString, text: String, pos: Int): (Vector[Operation], WString) = {
+    text.foldLeft((Vector.empty[Operation], w)) {
       case ((ops, wstring), ch) =>
         val (op, updated) = wstring.insert(ch, pos)
         (op +: ops, updated)
@@ -100,7 +111,9 @@ trait WootOperationHelpers {
 
 object NonEmptyStringGenerator {
 
-  case class NonEmptyString(text: String) extends AnyVal
+  case class NonEmptyString(text: String) extends AnyVal {
+    def chooseIndex = Gen.choose(0, text.length-1)
+  }
 
   // To allow us to treat the NonEmptyString as a String
   implicit def nes2s(nes: NonEmptyString): String = nes.text
