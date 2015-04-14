@@ -9,6 +9,7 @@ import org.scalacheck.Arbitrary, Arbitrary.arbitrary
 object WootModelSpec extends Properties("WOOT Model") with WootOperationHelpers {
 
   import NonEmptyStringGenerator._
+  import WootGenerator._
 
   property("local insert preserves original text") = forAll { (text: String) =>
     val (_, wstring) = applyWoot(text)
@@ -78,6 +79,55 @@ object WootModelSpec extends Properties("WOOT Model") with WootOperationHelpers 
     }
   }
 
+  property("delete operations should be emitted after corresponding insert") = {
+    /*
+
+    Imagine three sites, where there is a lag between site 1 and 3.
+    Site 1 will insert a character, and site 2 will delete it.
+    It takes 1 second for an insert from Site 1 to reach Site 2, but 5 seconds to reach site 3.
+    Site 2 immediately deletes the character and broadcasts it.
+    The delete will reach site 3 before the insert:
+
+                     (1 sec)
+      +--------+      INS A      +--------+
+      | Site 1 |--------+------->| Site 2 |
+      +--------+        |        +--------+
+           ^            |             |
+           |            |             |
+           +------------+---- DEL A --+ (1 sec)
+                        |             |
+                        |             |
+                        |             v
+                        |        +--------+
+                        +------->| Site 3 |
+                                 +--------+
+                       (5 secs)
+
+
+    Site 3 will queue the delete until it receives the insert.
+    When applying the insert, the delete will be dequeued and applied.
+
+    To ensure the side-effects are applied in the correct order,
+    the result of integrate at site 3 must be `Vector(insert,delete)`.
+
+    Alternatively: we could optimize the implementation and turn a
+    delete-before-an-insert into an automatic insert of an invisible
+    character, with resultant operations of `Vector.empty`.
+    */
+    val wstring = WString.empty()
+
+    forAll(wcharGen(wstring)) { wchar: WChar =>
+      val insert = InsertOp(wchar, wstring.site)
+      val delete = DeleteOp(wchar, wstring.site)
+
+      val (_, doc) = wstring.integrate(delete)
+      val (ops, _) = doc.integrate(insert)
+
+      ops == Vector(insert, delete)
+    }
+  }
+
+
   property("site max clock value is the largest operation from that site") =
     forAll { text: NonEmptyString =>
       val originalDoc = WString.empty()
@@ -136,6 +186,21 @@ trait WootOperationHelpers {
         (op +: ops, updated)
     }
   }
+}
+
+object WootGenerator {
+
+ // Implementation design problem: doc.nextTick implies returning a modified doc
+ def wcharGen(doc: WString): Gen[WChar] =
+  for {
+    alpha   <- arbitrary[Char]
+    visible <- arbitrary[Boolean]
+    id       = CharId(doc.site, doc.nextTick)
+    pos     <- Gen.choose(0, doc.chars.length)
+    prev     = if (pos == 0) Beginning else doc.chars(pos-1).id
+    next     = if (pos >= doc.chars.length) Ending else doc.chars(pos).id
+    } yield WChar(id, alpha, prev, next, visible)
+
 }
 
 object NonEmptyStringGenerator {
