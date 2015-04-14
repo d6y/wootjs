@@ -47,7 +47,7 @@ lazy val server = project.in(file("server"))
   .settings(wootModelSettings: _*)
   .settings(
     name := "woot-server",
-    libraryDependencies ++= http4s ++ logback,
+    libraryDependencies ++= http4s ++ logback ++ scalaz,
     resources in Compile += (fastOptJS in (client, Compile)).value.data,
     testOptions in Test += Tests.Argument(TestFrameworks.ScalaCheck,
       "-maxSize",            "200", // Longer strings
@@ -78,6 +78,10 @@ val http4sVersion = "0.6.2"
 lazy val http4s = Seq(
   "org.http4s" %% "http4s-blazeserver" % http4sVersion,
   "org.http4s" %% "http4s-dsl"         % http4sVersion
+)
+
+lazy val scalaz = Seq(
+  "org.scalaz.stream" %% "scalaz-stream" % "0.7a"
 )
 
 lazy val logback = Seq("ch.qos.logback" % "logback-classic" % "1.1.3")
