@@ -16,9 +16,13 @@ import org.http4s.server.websocket.WS
 
 import org.http4s.util.UrlCodingUtils.urlDecode
 
+
 import scalaz.concurrent.Task
-import scalaz.stream.Process
+import scalaz.stream.{Sink,Process,sink}
 import scalaz.stream.async.topic
+
+import scalaz.syntax.either._
+import scalaz.{\/,-\/,\/-}
 
 import scala.util.Properties.envOrNone
 
@@ -43,21 +47,22 @@ class WootRoutes {
 
       import upickle._
 
-      // TODO: wsf => Throwable \/ Operation
-      val decodeFrame: WebSocketFrame => Operation =
+      val parseAndUpdateWootDoc: String => Throwable \/ Operation = json =>
+        \/.fromTryCatchNonFatal{ read[Operation](json) }.map {op =>
+          val (_, updated) = doc.integrate(op)
+          doc = updated
+          op
+        }
+
+      val decodeFrame: WebSocketFrame => Throwable \/ Operation =
         _ match {
           case Text(json, _) =>
             logger.info(s"Received: $json")
-            val op = read[Operation](json)
-            val (_, updated) = doc.integrate(op)
-            doc = updated
-            op
-//          case nonText       =>
-//            logger.warn(s"Non Text received: $nonText")
-//            NoOp
+            parseAndUpdateWootDoc(json)
+          case nonText      =>
+            logger.warn(s"Non Text received: $nonText")
+            new IllegalArgumentException(s"Non Text $nonText").left
        }
-
-
 
       val encodeOp: Operation => Text = { op =>
         val json = write(op)
@@ -71,12 +76,28 @@ class WootRoutes {
       val clientCopy = doc.copy(site=clientSite)
       val document = Text(write(clientCopy))
 
-      val src = Process.emit(document) ++ ops.subscribe.map(encodeOp)
-      val snk = ops.publish.map(_ compose decodeFrame)
-      WS(src, snk)
 
-      // TODO: shutdown considerations
-      //val snk = ops.publish.map(_ compose decodeFrame).onComplete(Process.await(ops.publishOne(s"$name left the chat"))(_ => Process.halt))
+      def safeConsume(consume: (Operation => Task[Unit])): WebSocketFrame => Task[Unit] = ws =>
+        decodeFrame(ws) match {
+          case \/-(op)  => consume(op)
+          case -\/(err) =>
+            logger.warn(s"Failed to consume json: $err")
+            Task.fail(err)
+      }
+
+      val jsonToOperation: (Operation => Task[Unit]) => Sink[Task, WebSocketFrame] = { consumer =>
+        sink.lift( safeConsume(consumer) )
+       }
+
+      val src = Process.emit(document) ++ ops.subscribe.map(encodeOp)
+       val snk: Sink[Task, WebSocketFrame] = ops.publish.flatMap(jsonToOperation).onComplete(cleanup)
+
+      WS(src, snk)
+  }
+
+  private[this] def cleanup() = {
+    logger.info("Subscriber left")
+    Process.halt
   }
 }
 
