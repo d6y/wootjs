@@ -77,6 +77,5 @@ class WootClient(
       Try(read[Operation](json)).map(applyOperation) orElse
         Try(read[WString](json)).map(openDocument)
 
-
   }
 }

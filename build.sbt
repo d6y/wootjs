@@ -65,6 +65,8 @@ lazy val coverage = project.in(file("woot-model"))
 )
 
 // I happen to like defining dependencies as Seq()
+// For the %%% macro to work, we do this inside a setting
+// as described:
 // https://github.com/vmunier/play-with-scalajs-example/issues/20#issuecomment-56589251
 
 val upickle = Def.setting(Seq(
