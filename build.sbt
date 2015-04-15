@@ -41,7 +41,8 @@ lazy val client = project.in(file("client"))
   .settings(wootModelSettings: _*)
   .settings(
     name := "woot-client",
-    testFrameworks += new TestFramework("scalacheck.ScalaCheckFramework")
+    testFrameworks += new TestFramework("scalacheck.ScalaCheckFramework"),
+    javaOptions += "-Xmx2048m" // For tests, to avoid "OutOfMemoryError: Metaspace"
   )
 
 lazy val server = project.in(file("server"))
