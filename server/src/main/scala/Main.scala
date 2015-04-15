@@ -16,9 +16,8 @@ import org.http4s.server.websocket.WS
 
 import org.http4s.util.UrlCodingUtils.urlDecode
 
-
 import scalaz.concurrent.Task
-import scalaz.stream.{Sink,Process,sink}
+import scalaz.stream.{Sink,Process}
 import scalaz.stream.async.topic
 
 import scalaz.syntax.either._
@@ -28,7 +27,6 @@ import scala.util.Properties.envOrNone
 
 import org.log4s.getLogger
 
-
 class WootRoutes {
   private val logger = getLogger
   private implicit val scheduledEC = Executors.newScheduledThreadPool(1)
@@ -36,6 +34,12 @@ class WootRoutes {
   // Local view of the document, starting from blank.
   // In a real system, we'd load from a backing store based on the name or ID of the document
   var doc = new WString(SiteId("server"), ClockValue(0))
+
+  val updateDoc: Operation => Operation = op => {
+    val (_, updated) = doc.integrate(op)
+    doc = updated
+    op
+  }
 
   // The queue of WOOT operations:
   private val ops = topic[Operation]()
@@ -47,50 +51,46 @@ class WootRoutes {
 
       import upickle._
 
-      val parseAndUpdateWootDoc: String => Throwable \/ Operation = json =>
-        \/.fromTryCatchNonFatal{ read[Operation](json) }.map {op =>
-          val (_, updated) = doc.integrate(op)
-          doc = updated
-          op
-        }
-
-      val decodeFrame: WebSocketFrame => Throwable \/ Operation =
-        _ match {
-          case Text(json, _) =>
-            logger.info(s"Received: $json")
-            parseAndUpdateWootDoc(json)
-          case nonText      =>
-            logger.warn(s"Non Text received: $nonText")
-            new IllegalArgumentException(s"Non Text $nonText").left
-       }
-
-      val encodeOp: Operation => Text = { op =>
-        val json = write(op)
-        logger.debug(s"encodeOp: $json")
-        Text(json)
-      }
+      //
+      // Set up source for documents and operations to send to the client:
+      //
 
       val clientSite = SiteId.random
       logger.info(s"Subscribing $clientSite to document $name")
 
+      val encodeOp: Operation => Text =
+        op => Text(write(op))
+
       val clientCopy = doc.copy(site=clientSite)
       val document = Text(write(clientCopy))
+      val src = Process.emit(document) ++ ops.subscribe.map(encodeOp)
 
+      //
+      // Set up sink for operations sent from the client:
+      //
 
-      def safeConsume(consume: (Operation => Task[Unit])): WebSocketFrame => Task[Unit] = ws =>
-        decodeFrame(ws) match {
-          case \/-(op)  => consume(op)
-          case -\/(err) =>
-            logger.warn(s"Failed to consume json: $err")
-            Task.fail(err)
-      }
+      // We can fail in at least two ways:
+      // we're sent invalid JSON; or we're not sent text.
 
-      val jsonToOperation: (Operation => Task[Unit]) => Sink[Task, WebSocketFrame] = { consumer =>
-        sink.lift( safeConsume(consumer) )
+      val parse: String => Throwable \/ Operation =
+        json => \/.fromTryCatchNonFatal { read[Operation](json) }
+
+      val decodeFrame: WebSocketFrame => Throwable \/ Operation =
+        _ match {
+          case Text(json, _) => parse(json).map(updateDoc)
+          case nonText       => new IllegalArgumentException(s"Cannot handle: $nonText").left
        }
 
-      val src = Process.emit(document) ++ ops.subscribe.map(encodeOp)
-       val snk: Sink[Task, WebSocketFrame] = ops.publish.flatMap(jsonToOperation).onComplete(cleanup)
+      val errorHandler: Throwable => Task[Unit] =
+        err => {
+          logger.warn(s"Failed to consume message: $err")
+          Task.fail(err)
+        }
+
+      def safeConsume(consume: Operation => Task[Unit]): WebSocketFrame => Task[Unit] =
+        ws => decodeFrame(ws).fold(errorHandler, consume)
+
+      val snk: Sink[Task, WebSocketFrame] = ops.publish.map(safeConsume).onComplete(cleanup)
 
       WS(src, snk)
   }
