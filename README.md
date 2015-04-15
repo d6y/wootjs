@@ -28,14 +28,11 @@ WOOT stands for With Out [Operational Transforms](https://en.wikipedia.org/wiki/
 
 ## This Project
 
-This project contains a Scala implementation of WOOT,
-which has also been compiled to JavaScript using Scala.js.
+This project contains a Scala implementation of WOOT. It has ben een compiled to JavaScript using Scala.js.
+In other words, this is an example of sharing one implementation (the WOOT model) in both a JavaScript and Scala context.
 
-WOOT is only the algorithm for text consistency. 
+WOOT is only the algorithm for text consistency.
 You need to bring your own editor and network layer.
-
-The project is an example of sharing one implementation (the WOOT model)
-in both a JavaScript and Scala context.
 
 The editor is [ACE](http://ace.c9.io/), which is wired up to the
 Scala.js implementation of WOOT locally within the browser.
@@ -72,8 +69,8 @@ This reflects the structure of the project:
 
 ## Exploring the Code
 
-1. _server/src/main/resources/index.html_ is the starting point for the client. This folder also contains a trivial websocket JavaScript client (_ws.js_) and the editor bindings (_editor.js_).  
-2. _editor.js_ creates a local instance of the "woot client" and kicks off the web socket interactions. 
+1. _server/src/main/resources/index.html_ is the starting point for the client. This folder also contains a trivial websocket JavaScript client (_ws.js_) and the editor bindings (_editor.js_).
+2. _editor.js_ creates a local instance of the "woot client" and kicks off the web socket interactions.
 3. _client/src/main/scala/client/WootClient.scala_ is the exposed interface to the WOOT model.  This is Scala compiled to JavaScript.
 4.  _server/src/main/scala/Main.scala_ is the server that accepts and broadcasts WOOT operations to clients.
 
@@ -84,13 +81,13 @@ The tests for this project are implemented as [ScalaCheck](http://www.scalacheck
 
 ### Running the tests in the JVM
 
-   sbt> project server
-   sbt> test
+    sbt> project server
+    sbt> test
 
 ### Running the tests in a JavaScript interpreter
 
-   sbt> project client
-   sbt> test
+    sbt> project client
+    sbt> test
 
 ### Code Coverage
 
