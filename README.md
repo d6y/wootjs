@@ -28,7 +28,7 @@ WOOT stands for With Out [Operational Transforms](https://en.wikipedia.org/wiki/
 
 ## This Project
 
-This project contains a Scala implementation of WOOT. It has ben een compiled to JavaScript using Scala.js.
+This project contains a Scala implementation of WOOT. It has been compiled to JavaScript using Scala.js.
 In other words, this is an example of sharing one implementation (the WOOT model) in both a JavaScript and Scala context.
 
 WOOT is only the algorithm for text consistency.
