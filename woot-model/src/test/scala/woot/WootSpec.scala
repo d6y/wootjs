@@ -81,7 +81,6 @@ object WootModelSpec extends Properties("WOOT Model") with WootOperationHelpers 
 
   property("delete operations should be emitted after corresponding insert") = {
     /*
-
     Imagine three sites, where there is a lag between site 1 and 3.
     Site 1 will insert a character, and site 2 will delete it.
     It takes 1 second for an insert from Site 1 to reach Site 2, but 5 seconds to reach site 3.
