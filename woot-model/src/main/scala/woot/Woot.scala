@@ -248,6 +248,21 @@ case class WString(
     (op, wstring.tick)
   }
 
+
+  // Convenience for setting up a model from some arbitrary text.
+  // Useful for garbage collection and testing
+  def insert(text: String): (Vector[Operation], WString) = {
+    val zero = (Vector.empty, this)
+
+    val insertFrom = this.visible.length
+
+    (text.zipWithIndex).foldLeft[(Vector[Operation],WString)](zero) {
+      case ( (ops, wstring), (ch, pos) ) =>
+        val (op, updated) = wstring.insert(ch, insertFrom+pos)
+        (op +: ops, updated)
+    }
+  }
+
   // # Remove a local character, giving the operation and updated `WString`.
   def delete(visiblePos: Int): (DeleteOp, WString) = {
 
