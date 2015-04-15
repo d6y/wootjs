@@ -94,6 +94,7 @@ Then open _woot-model/target/scala-2.11/scoverage-report/index.html_
 * [Exporting Scala.js APIs to JavaScript](http://www.scala-js.org/doc/export-to-javascript.html)
 * [Calling JavaScript from Scala.js](http://www.scala-js.org/doc/calling-javascript.html)
 * [Semantics of Scala.js](http://www.scala-js.org/doc/semantics.html) - exceptions to the rule that Scala.js prorgrams behave the same as Scala on the JVM.
+* [JavaScript interoperability ](http://www.scala-js.org/doc/js-interoperability.html) - including a list of [opaque types](http://stackoverflow.com/questions/27821841/working-with-opaque-types-char-and-long).
 * [µPickle 0.2.8](http://lihaoyi.github.io/upickle/) - the JVM and JavaScript JSON/case class serialization library used in this demo.
 * [http4s](http://http4s.org/) - the server used in this demo.
 
