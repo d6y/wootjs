@@ -47,6 +47,7 @@ lazy val client = project.in(file("client"))
 
 lazy val server = project.in(file("server"))
   .settings(wootModelSettings: _*)
+  .settings(Revolver.settings)
   .settings(
     name := "woot-server",
     libraryDependencies ++= http4s ++ logback,
