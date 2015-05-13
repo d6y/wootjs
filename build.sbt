@@ -41,6 +41,7 @@ lazy val client = project.in(file("client"))
   .settings(wootModelSettings: _*)
   .settings(
     name := "woot-client",
+    libraryDependencies ++= dom.value,
     testFrameworks += new TestFramework("scalacheck.ScalaCheckFramework"),
     javaOptions += "-Xmx2048m" // For tests, to avoid "OutOfMemoryError: Metaspace"
   )
@@ -76,6 +77,10 @@ val upickle = Def.setting(Seq(
 
 val scalacheck = Def.setting(Seq(
   "org.scalacheck" %%% "scalacheck" % "1.12.2" % "test"
+))
+
+val dom = Def.setting(Seq(
+  "org.scala-js" %%% "scalajs-dom" % "0.8.0"
 ))
 
 val http4sVersion = "0.6.2"
