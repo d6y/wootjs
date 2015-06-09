@@ -19,30 +19,37 @@ This session is relevant to anyone wanting to execute Scala code in JavaScript. 
 
 The demonstration will be based around a CRDT. CRDTs are an important class of algorithms for consistently combining data from multiple distributed clients. As such they are a great target for Scala.js: the algorithms and data-structures involved will typically need to run on browsers and servers and we'd like to avoid implementing the (moderately complex) code twice. The specific algorithm will be WOOT, a text CRDT for correctly combining changes (think: Google Docs).＂
 
+----
+
 # Script
 
 ## Welcome
 
 Hi Everyone - thanks for coming along.
 
-I'm Richard. I work for Underscore Consulting, and this is a session on Scala.js
+I'm Richard. I work for Underscore.
 
-I'd like to show you an example of what, for me, is a kind of perfect world for writing applications for the web.
+Underscore is an consultancy, which covers quite a wide range of things, but I mostly wotk with customers by writing software and reviewing software.
 
-And by perfect I mean:
+This is a session on Scala.js
+
+I'll be describing what I think of as a kind of ideal world for web dev. And show you how that looks, in practice.
+
+
+By ideal, what I mean is...
+
 - being able to writing in a languages with types, like Scala;
-- it means it has to run in a JavaScript environment, because that's everywhere;
-- it also means running in a JVM environment, because we know we can build robust fast backends; and
-- reducing boilerplate for marshaling data between those two places, and share code where we can.
+- I want to be able to run that code, on the server, in a fast and reliable environment, and the JVM is a good choice there;
+- it means it has to run in a JavaScript environment, because that's everywhere; and
+- I want to do this without repeating myself: I don't want to worry about marshaling data between those two places, and I do want to share code where we can.
 
 Those are all things Scala.js can do, and we'll see.
 
 ## Change
 
-The point of this, btw, the bigger picture, and why I think it's desirable, is to make change easier.  Across the lifetime of an application, I want to use tools & techniques that make it quick and safe to make changes.
+The point of this, btw, the bigger picture, and why I think these things are desirable, is to make change easier.  Across the lifetime of an application, I want to use tools & techniques that make it quick and safe to make changes.
 
-And that's what I think of as the most important thing, and one that Scala.js helps with.
-
+Scala.js can play a big part in making that a reality.
 
 ## Agenda
 
@@ -50,9 +57,9 @@ The talk is in three parts.
 
 I'm not assuming any knowledge of Scala.js, so we'll spend a few minutes saying what Scala.js
 
-I'll then introduce the specific example I'm using, which is a algorithm for collaborative text editing. So something like a Google doc, and that's the kind of app we'll be building. This is fun because it involves client-side stuff, server-side stuff, and an opportunity to write code once and us it browser side and server side.
+I'll then introduce the example I'm using, which is collaborative text editing. So something like a Google Docs. That's the kind of app we'll be building. This is fun because it involves client-side stuff, server-side stuff, and an opportunity to write code once and us it browser side and server side. It demonstrates some nice parts of Scala.js.
 
-It's also an example of a class of algorithm called a CRDT, which I think are fun, interesting and important. We'll get to all of that in part 2.
+It's also an example of a class of algorithm called a CRDT, which in themselves are interesting and important. We'll get to all of that in part 2.
 
 The third part, is looking at the mechanics of how you get all this with Scala.js -- there's where most of the code will be.
 
@@ -60,13 +67,15 @@ The third part, is looking at the mechanics of how you get all this with Scala.j
 
 As we go through this, I hope to share two ideas with you.
 
-The first is that scala.js is something you can gradually add to a project.
+The first is that Scala.js is something you can gradually add to a project.
 
 I hope you've seen some of the superb demos of Scala.js where complete games are built, and it's all in Scala and it runs in the browser. If you've not, search for them because they are a hugely impressive.
 
-The focus here, though, is not to do that. It's not often realistic to re-write everything, or you're not always starting from nothing.
+The focus here, though, is not to do that.  I want to gradually add Scala.js
 
-And this is important if you have a mixed team, where you've already have some great JavaScript developers and existing JavaScript assets. You don't want to throw any of that away. (You may want to throw it away, but I'm staying you don't have to).
+This is important if you have a mixed team, where you've already have some great JavaScript developers and existing JavaScript assets. You don't want to throw any of that away. (You may want to throw it away, but I'm staying you don't have to).
+
+Also: It's not often realistic to re-write everything, or you're not always starting from nothing.
 
 
 The other idea is that Scala.js is pretty much ideal for the kinds of interactive, real-time, algorithms you might be working with. That will make more sense when I describe the collaborative editing app. And you'll see then while I'm so keen on Scala.js.
@@ -127,7 +136,7 @@ The JavaScript output is, not exactly this, but this kind of thing.  You can see
 
 The real Javascript is not much bigger.  The names are longer and weirder. And there is more going on, but I just wanted to show the kinds of output you get.  
 
-I don't normally go look at this output, but I wanted to re-assure you that it's not a disaster area.
+I don't normally go look at this output, but it's good to know it's reasonable stuff.
 
 ## Features
 
