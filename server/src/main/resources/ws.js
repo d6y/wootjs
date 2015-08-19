@@ -4,7 +4,7 @@ This is pretty much the http://websockets.org/ example code
 with small changes.
 
 */
-var wsUri = "ws://127.0.0.1:8080/edit/default";
+var wsUri = "ws://127.0.0.1:8080/woot/edit/default";
 var statusIndicator, statusMsg;
 var websocket;
 

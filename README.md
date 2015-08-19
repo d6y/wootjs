@@ -5,7 +5,7 @@
 
 ## For the Impatient
 
-    $ sbt "project server" run
+    $ sbt server/run
 
 Then open _http://127.0.0.1:8080/_ to edit a document.
 
