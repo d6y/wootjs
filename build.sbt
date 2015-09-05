@@ -1,6 +1,6 @@
 name := "woot"
 
-scalaVersion in ThisBuild := "2.11.6"
+scalaVersion in ThisBuild := "2.11.7"
 
 resolvers in ThisBuild += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 
@@ -62,9 +62,8 @@ lazy val server = project.in(file("server"))
 // This project exists to be able to generate code coverage reports
 lazy val coverage = project.in(file("woot-model"))
   .settings(
-  name := "coverage",
-  libraryDependencies ++= scalacheck.value
-)
+    name := "coverage",
+    libraryDependencies ++= scalacheck.value)
 
 // I happen to like defining dependencies as Seq()
 // For the %%% macro to work, we do this inside a setting
@@ -83,14 +82,11 @@ val dom = Def.setting(Seq(
   "org.scala-js" %%% "scalajs-dom" % "0.8.0"
 ))
 
-val http4sVersion = "0.6.2"
+val http4sVersion = "0.10.0"
 
 lazy val http4s = Seq(
-  "org.http4s" %% "http4s-blazeserver" % http4sVersion,
-  "org.http4s" %% "http4s-dsl"         % http4sVersion
+  "org.http4s" %% "http4s-blaze-server" % http4sVersion,
+  "org.http4s" %% "http4s-dsl"          % http4sVersion
 )
 
 lazy val logback = Seq("ch.qos.logback" % "logback-classic" % "1.1.3")
-
-// Clear the console when ~compile (for example) runs
-triggeredMessage in ThisBuild := Watched.clearWhenTriggered

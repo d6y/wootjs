@@ -7,8 +7,8 @@ Editor controls.
 - Provides display functions for the WOOT client to call.
 - Broadcasts changes to the web socket.
 */
-var trace = function() { if (console & console.log) console.log.apply(console, arguments); };
-//var trace = function() {};
+//var trace = function() { if (console & console.log) console.log.apply(console, arguments); };
+var trace = function() {};
 
 //
 // Not all changes need to be broadcast down the web socket
