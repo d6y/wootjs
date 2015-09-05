@@ -34,11 +34,23 @@ In other words, this is an example of sharing one implementation (the WOOT model
 WOOT is only the algorithm for text consistency.
 You need to bring your own editor and network layer.
 
-The editor is [ACE](http://ace.c9.io/), which is wired up to the
+This example includes the [ACE](http://ace.c9.io/) editor, which is wired up to the
 Scala.js implementation of WOOT locally within the browser.
 Updates are sent over a web socket to a http4s server which also maintains a copy of the model, but on the JVM.
 
 ![Screen Shot of Editor being Used](docs/poem.png)
+
+## Performance
+
+This is a simple implementation that is slow for bulk actions (e.g., paste and cut).
+
+To improve performance you will want to:
+
+- measure what's slow for your scenarios
+- batch messages between client and server (maybe)
+- optimize the `trim`, `canIntegrate`, and `indexOf` methods.
+
+I may get round to doing this at some point!
 
 ## What Happens When You Run the Web Server
 
@@ -71,7 +83,7 @@ This reflects the structure of the project:
 1. _server/src/main/resources/index.html_ is the starting point for the client. This folder also contains a trivial websocket JavaScript client (_ws.js_) and the editor bindings (_editor.js_).
 2. _editor.js_ creates a local instance of the "woot client" and kicks off the web socket interactions.
 3. _client/src/main/scala/client/WootClient.scala_ is the exposed interface to the WOOT model.  This is Scala compiled to JavaScript.
-4.  _server/src/main/scala/Main.scala_ is the server that accepts and broadcasts WOOT operations to clients.
+4.  _server/src/main/scala/main.scala_ is the server that accepts and broadcasts WOOT operations to clients.
 
 
 ## Tests

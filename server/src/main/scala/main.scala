@@ -3,6 +3,7 @@ class WootServer(host: String, port: Int) {
   import java.net.InetSocketAddress
   import org.log4s.getLogger
   import org.http4s.server.blaze.BlazeBuilder
+  import scala.concurrent.duration.Duration
 
   private val logger = getLogger
   logger.info(s"Starting Http4s-blaze WootServer on '$host:$port'")
@@ -11,6 +12,7 @@ class WootServer(host: String, port: Int) {
     BlazeBuilder.
       bindSocketAddress(new InetSocketAddress(host, port)).
       withWebSockets(true).
+      withIdleTimeout(Duration.Inf).
       mountService(new StaticRoutes().service, "/").
       mountService(new WootRoutes().service, "/woot/").
       run.

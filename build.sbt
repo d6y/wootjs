@@ -82,7 +82,7 @@ val dom = Def.setting(Seq(
   "org.scala-js" %%% "scalajs-dom" % "0.8.0"
 ))
 
-val http4sVersion = "0.9.0"
+val http4sVersion = "0.10.0"
 
 lazy val http4s = Seq(
   "org.http4s" %% "http4s-blaze-server" % http4sVersion,
