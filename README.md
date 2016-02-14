@@ -75,7 +75,7 @@ This reflects the structure of the project:
 
 * _client_ - Scala source code, to be compiled to JavaScript.
 * _server_ - Scala source code to run server-side, plus other assets to be served, such as HTML, CSS and plain old JavaScript.
-* _woot-model_ - Scala source code shared by both the client and server projects. This is the WOOT algorithm, implemented once, used in the JVM and the JavaScript runtime.
+* _wootModel_ - Scala source code shared by both the client and server projects. This is the WOOT algorithm, implemented once, used in the JVM and the JavaScript runtime.
 
 
 ## Exploring the Code
@@ -92,21 +92,23 @@ The tests for this project are implemented as [ScalaCheck](http://www.scalacheck
 
 ### Running the tests in the JVM
 
-    sbt> project server
-    sbt> test
-
-### Running the tests in a JavaScript interpreter
-
-    sbt> project client
-    sbt> test
-
-### Code Coverage
-
-    sbt> project coverage
+    sbt> project wootModelJVM
     sbt> coverage
     sbt> test
 
-Then open _woot-model/target/scala-2.11/scoverage-report/index.html_
+Then open _wootModel/jvm/target/scala-2.11/scoverage-report/index.html_
+
+## Publishing Woot Model
+
+* Follow [bintray-sbt publishing instructions](https://github.com/softprops/bintray-sbt#publishing)
+* `;wootModelJS/publish; wootModelJVM/publish`
+
+It will now be available with
+
+```scala
+resolvers += "<repo-name>" at "http://dl.bintray.com/content/<repo-name>/maven",
+libraryDependencies += "com.dallaway.richard" %%% "woot-model" % "<current-version>",
+```
 
 ## Reference
 
