@@ -76,7 +76,7 @@ lazy val wootModel = crossProject
     name := "woot-model",
     libraryDependencies ++= Seq(
       "com.lihaoyi"    %%% "upickle"    % "0.2.8",
-      "org.scalacheck" %%% "scalacheck" % "1.12.2" % "test"
+      "org.scalacheck" %%% "scalacheck" % "1.12.5" % "test"
     )
   )
   .jsSettings(
