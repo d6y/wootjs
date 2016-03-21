@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/d6y/wootjs.svg?branch=master)](https://travis-ci.org/d6y/wootjs)
+
 # WOOT with Scala.js
 
 * Collaborative text editing, using the WOOT algorithm.
