@@ -4,7 +4,7 @@ lazy val root = project.in(file("."))
   .settings(publish := {}, publishLocal := {})
 
 lazy val commonSettings = Seq(
-  version := "0.1.0",
+  version := "0.1.1",
   organization := "com.dallaway.richard",
   licenses += "Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"),
   scalaVersion := "2.11.7",
@@ -24,8 +24,9 @@ lazy val commonSettings = Seq(
     "-Ywarn-value-discard",
     "-Xfuture"
   )
-
 )
+
+val upickleVersion = "0.2.8"
 
 lazy val client = project.in(file("client"))
   .enablePlugins(ScalaJSPlugin)
@@ -33,7 +34,8 @@ lazy val client = project.in(file("client"))
   .settings(
     name := "woot-client",
     testFrameworks += new TestFramework("scalacheck.ScalaCheckFramework"),
-    javaOptions += "-Xmx2048m" // For tests, to avoid "OutOfMemoryError: Metaspace"
+    javaOptions += "-Xmx2048m", // For tests, to avoid "OutOfMemoryError: Metaspace"
+    libraryDependencies += "com.lihaoyi" %%% "upickle" % upickleVersion
   ) dependsOn(modelJs)
 
 lazy val http4s = Seq(
@@ -56,7 +58,10 @@ lazy val server = project.in(file("server"))
   .settings(http4s: _*)
   .settings(
     name := "woot-server",
-    libraryDependencies +="ch.qos.logback"  % "logback-classic" % "1.1.3",
+    libraryDependencies ++= Seq(
+      "com.lihaoyi" %%% "upickle" % upickleVersion,
+      "ch.qos.logback"  % "logback-classic" % "1.1.3"
+    ),
     resources in Compile ++= {
       def andSourceMap(aFile: java.io.File) = Seq(
         aFile,
@@ -74,10 +79,7 @@ lazy val wootModel = crossProject
   .settings(commonSettings: _*)
   .settings(
     name := "woot-model",
-    libraryDependencies ++= Seq(
-      "com.lihaoyi"    %%% "upickle"    % "0.2.8",
-      "org.scalacheck" %%% "scalacheck" % "1.12.5" % "test"
-    )
+    libraryDependencies += "org.scalacheck" %%% "scalacheck" % "1.12.5" % "test"
   )
   .jsSettings(
     libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.8.0"
