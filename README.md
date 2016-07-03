@@ -27,6 +27,10 @@ The key references are:
 
 WOOT stands for With Out [Operational Transforms](https://en.wikipedia.org/wiki/Operational_transform).
 
+## Presentations
+
+I've spoken about this project at Scala Days 2015: [there's video](https://www.parleys.com/tutorial/towards-browser-server-utopia-scala-js-example-using-crdts) and also [the slides](https://speakerdeck.com/d6y/towards-browser-and-server-utopia-with-scala-dot-js-an-example-using-crdts).
+
 
 ## This Project
 
